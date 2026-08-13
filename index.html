@@ -48,7 +48,7 @@ button{font:inherit}
 .tab.active{background:var(--paper);color:var(--ink);box-shadow:0 2px 9px rgba(0,0,0,.07)}
 main{padding:26px 22px 90px}
 .story-switch{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.story-chip{border:1.5px solid var(--line);background:var(--paper);border-radius:100px;padding:7px 12px;font-size:12px;font-weight:800;color:#77736b;cursor:pointer}
+.story-chip{display:inline-block;border:1.5px solid var(--line);background:var(--paper);border-radius:100px;padding:7px 12px;font-size:12px;font-weight:800;color:#77736b}
 .story-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .story-chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#e6a23c;margin-right:5px;vertical-align:middle}
 .episode-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:23px}
@@ -314,21 +314,15 @@ function backToHub() {
 function lv() { return LEVELS[currentLevelKey]; }
 function activeStory() { return lv().stories[currentStoryIndex]; }
 
+// Read-only "which day's story this is" label — deliberately NOT a
+// switcher. Letting someone browse ahead to Friday's story on a Tuesday
+// would defeat the whole point of pacing 70 words across the week; the
+// only thing shown here is which slot today's story belongs to.
 function renderStorySwitch() {
   const l = lv();
   if (l.stories.length <= 1) { storySwitchEl.innerHTML = ""; return; }
-  const todayIdx = todaysStoryIndex(l);
-  storySwitchEl.innerHTML = l.stories.map((s, i) => `
-    <button class="story-chip ${i === currentStoryIndex ? "active" : ""}" type="button" data-story="${i}">
-      ${i === todayIdx ? '<span class="dot"></span>' : ""}${s.label}
-    </button>`).join("");
-}
-
-function switchStory(i) {
-  currentStoryIndex = i;
-  currentEpisode = 0;
-  closeWord();
-  render();
+  const story = activeStory();
+  storySwitchEl.innerHTML = `<span class="story-chip active"><span class="dot"></span>${story.label} · 오늘의 이야기</span>`;
 }
 
 function renderParagraph(text) {
@@ -476,10 +470,6 @@ levelGrid.addEventListener("click", e => {
   if (btn && !btn.disabled) openLevel(btn.dataset.level);
 });
 $("backToHub").addEventListener("click", backToHub);
-storySwitchEl.addEventListener("click", e => {
-  const chip = e.target.closest(".story-chip");
-  if (chip) switchStory(Number(chip.dataset.story));
-});
 storyEl.addEventListener("click", e => {
   const target = e.target.closest(".word");
   if (target) openWord(target.dataset.word);
