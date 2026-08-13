@@ -3,214 +3,306 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6f4ee" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#17171a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#efeeec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
 <title>단어 스릴러 · 급수 선택</title>
 <style>
+/* ---------------------------------------------------------------
+   Palette. Two themes, one language: near-flat page, list rows that
+   are a shade lighter (dark) / a shade darker (light) than the page,
+   almost no hairlines, and exactly one chromatic accent (amber) that
+   appears on the app mark, the "today" dot and word tokens.
+   Every color below is a variable — nothing outside :root/[data-theme]
+   is allowed to hardcode a hex, or the theme toggle silently breaks.
+   --------------------------------------------------------------- */
 :root {
   color-scheme: light dark;
-  --bg:#f3f1ea;
-  --paper:#fffdf8;
-  --ink:#1d1f1b;
-  --muted:#78766e;
-  --line:#e4e0d6;
-  --soft:#f1eee7;
-  --word:#e7ecdf;
-  --word-hover:#dce5d1;
-  --shadow:0 18px 48px rgba(32,31,27,.12);
-  --header-bg:rgba(255,253,248,.94);
-  --app-shadow:0 0 50px rgba(0,0,0,.035);
+  --bg:#efeeec;
+  --paper:#ffffff;
+  --surface:#f5f5f3;
+  --surface-hover:#ececea;
+  --surface-strong:#e7e7e3;
+  --seg-active:#ffffff;
+  --ink:#37352f;
+  --muted:#5d5b56;
+  --faint:#767471;
+  --line:#eae9e5;
+  --accent:#8a5a12;
+  --accent-soft:#f6ecd8;
+  --word-bg:#f6ecd6;
+  --word-hover:#eddfbc;
+  --word-ink:#5f4310;
+  --scrim:rgba(30,29,26,.32);
+  --shadow:0 16px 44px rgba(25,24,20,.16);
+  --app-shadow:0 0 40px rgba(0,0,0,.05);
+  --header-bg:rgba(255,255,255,.9);
+  --seg-shadow:0 1px 3px rgba(25,24,20,.12);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:#17171a;
-    --paper:#1e1e21;
-    --ink:#eae7e0;
-    --muted:#8f8c84;
-    --line:#333237;
-    --soft:#26262a;
-    --word:#3a4136;
-    --word-hover:#47503f;
-    --shadow:0 18px 48px rgba(0,0,0,.55);
-    --header-bg:rgba(23,23,26,.88);
-    --app-shadow:0 0 50px rgba(0,0,0,.4);
+    --bg:#141414;
+    --paper:#191919;
+    --surface:#202020;
+    --surface-hover:#252525;
+    --surface-strong:#2b2b2b;
+    --seg-active:#333333;
+    --ink:#e9e9e7;
+    --muted:#a3a29d;
+    --faint:#85857f;
+    --line:#272727;
+    --accent:#d9a44f;
+    --accent-soft:#2a2318;
+    --word-bg:#2a2419;
+    --word-hover:#383021;
+    --word-ink:#efc887;
+    --scrim:rgba(0,0,0,.58);
+    --shadow:0 16px 44px rgba(0,0,0,.6);
+    --app-shadow:0 0 40px rgba(0,0,0,.35);
+    --header-bg:rgba(25,25,25,.88);
+    --seg-shadow:0 1px 3px rgba(0,0,0,.35);
   }
 }
 :root[data-theme="dark"] {
-  --bg:#17171a;
-  --paper:#1e1e21;
-  --ink:#eae7e0;
-  --muted:#8f8c84;
-  --line:#333237;
-  --soft:#26262a;
-  --word:#3a4136;
-  --word-hover:#47503f;
-  --shadow:0 18px 48px rgba(0,0,0,.55);
-  --header-bg:rgba(23,23,26,.88);
-  --app-shadow:0 0 50px rgba(0,0,0,.4);
+  --bg:#141414;
+  --paper:#191919;
+  --surface:#202020;
+  --surface-hover:#252525;
+  --surface-strong:#2b2b2b;
+  --seg-active:#333333;
+  --ink:#e9e9e7;
+  --muted:#a3a29d;
+  --faint:#85857f;
+  --line:#272727;
+  --accent:#d9a44f;
+  --accent-soft:#2a2318;
+  --word-bg:#2a2419;
+  --word-hover:#383021;
+  --word-ink:#efc887;
+  --scrim:rgba(0,0,0,.58);
+  --shadow:0 16px 44px rgba(0,0,0,.6);
+  --app-shadow:0 0 40px rgba(0,0,0,.35);
+  --header-bg:rgba(25,25,25,.88);
+  --seg-shadow:0 1px 3px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
   margin:0;background:var(--bg);color:var(--ink);
   font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  line-height:1.85;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
 }
-button{font:inherit}
+button{font:inherit;color:inherit}
 .app{
   width:min(760px,100%);min-height:100vh;margin:0 auto;background:var(--paper);
   box-shadow:var(--app-shadow);
 }
+
+/* ---- shared list-row language -------------------------------------
+   One row primitive used by the level picker, the settings disclosure
+   and the episode table of contents, so all three read as the same
+   control: [icon] [title / subtitle] [chevron]. Rows separate from the
+   page by background alone — no hairline borders between them. */
+.row{
+  width:100%;display:flex;align-items:center;gap:11px;min-height:52px;
+  border:0;border-radius:10px;background:var(--surface);color:var(--ink);
+  padding:9px 11px;text-align:left;cursor:pointer;
+  transition:background .13s ease;
+}
+.row:hover,.row:focus-visible{background:var(--surface-hover);outline:none}
+.row:disabled{opacity:.42;cursor:default}
+.row:disabled:hover{background:var(--surface)}
+.row-flat{background:transparent;min-height:44px;padding:7px 8px}
+.row-flat:hover,.row-flat:focus-visible{background:var(--surface)}
+.row-list>.row+.row{margin-top:6px}
+.row-icon{
+  flex:0 0 30px;height:30px;border-radius:8px;background:var(--surface-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;letter-spacing:-.02em;color:var(--muted);
+}
+.row-flat .row-icon{flex-basis:26px;height:26px;font-size:14px;background:transparent}
+.row-main{flex:1;min-width:0}
+.row-title{
+  display:block;font-size:14.5px;font-weight:700;line-height:1.45;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row-sub{
+  display:block;margin-top:1px;font-size:12px;line-height:1.45;color:var(--faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row-chev{flex:0 0 auto;color:var(--faint);font-size:17px;line-height:1;transition:transform .16s ease}
+.row.open .row-chev{transform:rotate(90deg)}
+.row-tag{
+  display:inline-block;margin-left:7px;padding:1px 7px;border-radius:5px;
+  background:var(--surface-strong);color:var(--faint);
+  font-size:10.5px;font-weight:700;vertical-align:1px;
+}
+.section-label{
+  margin:20px 2px 7px;font-size:11px;font-weight:700;letter-spacing:.06em;
+  color:var(--faint);
+}
+.icon-btn{
+  flex:0 0 auto;width:32px;height:32px;border:0;border-radius:8px;background:transparent;
+  color:var(--muted);font-size:15px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.icon-btn:hover{background:var(--surface)}
+#backToHub{font-size:20px}
+
+/* ---- header ------------------------------------------------------- */
 .topbar{
-  position:sticky;top:0;z-index:20;padding:13px 18px 12px;
+  position:sticky;top:0;z-index:20;padding:8px 12px 8px;
   background:var(--header-bg);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);
 }
-.theme-toggle{
-  border:1.5px solid var(--line);background:var(--paper);color:var(--ink);
-  width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+.topline{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.brand{
+  flex:1;min-width:0;font-size:13px;color:var(--muted);font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;
 }
-.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-.topline-end{display:flex;align-items:center;gap:9px}
-.brand{font-size:13px;color:var(--muted);font-weight:700}
-.total{font-size:12px;color:var(--muted)}
-/* Notion-style collapsed-by-default row: everything except the story itself
-   (display mode, TOC) tucks under this until tapped open, so the reading
-   pane is what actually greets you. */
-.settings-trigger{
-  width:100%;display:flex;align-items:center;justify-content:space-between;
-  border:0;background:transparent;padding:6px 2px;color:var(--muted);
-  font-size:12.5px;font-weight:800;cursor:pointer;
-}
-.settings-trigger .chev{transition:transform .15s ease;font-size:14px}
-.settings-trigger.open .chev{transform:rotate(90deg)}
-.settings-panel{display:none;margin-top:6px}
+/* Collapsed-by-default disclosure: everything that isn't the story
+   itself (display mode, TOC) lives behind this one row, so opening a
+   level lands you on prose, not on chrome. */
+.settings-panel{display:none;padding:2px 2px 6px}
 .settings-panel.open{display:block}
-.tabs{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;padding:4px;
-  background:var(--soft);border:1px solid var(--line);border-radius:14px;
-}
+.settings-panel .section-label{margin-top:10px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;padding:3px;background:var(--surface);border-radius:10px}
 .tab{
-  border:0;background:transparent;border-radius:10px;padding:10px 8px;
-  color:var(--muted);font-size:14px;font-weight:800;cursor:pointer;
+  border:0;background:transparent;border-radius:8px;padding:9px 6px;
+  color:var(--faint);font-size:13px;font-weight:700;cursor:pointer;
 }
-.tab.active{background:var(--paper);color:var(--ink);box-shadow:0 2px 9px rgba(0,0,0,.07)}
-main{padding:26px 22px 90px}
-.story-switch{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.story-chip{display:inline-block;border:1.5px solid var(--line);background:var(--paper);border-radius:100px;padding:7px 12px;font-size:12px;font-weight:800;color:var(--muted)}
-.story-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.story-chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#e6a23c;margin-right:5px;vertical-align:middle}
-.episode-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:23px}
+.tab.active{background:var(--seg-active);color:var(--ink);box-shadow:var(--seg-shadow)}
+
+/* ---- table of contents (nested children of the 목차 row) ---------- */
+.toc-panel{display:none;margin:2px 0 0 19px;padding-left:8px;border-left:1px solid var(--line);max-height:44vh;overflow:auto}
+.toc-panel.open{display:block}
+.toc-item{
+  width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;
+  padding:9px 9px;border-radius:8px;text-align:left;cursor:pointer;color:var(--muted);
+}
+.toc-item:hover{background:var(--surface)}
+.toc-item.active{background:var(--surface);color:var(--ink)}
+.toc-num{flex:0 0 34px;color:var(--faint);font-size:10.5px;font-weight:700;letter-spacing:.04em}
+.toc-name{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- home / level picker ------------------------------------------ */
+main{padding:18px 16px 88px}
+.hub{padding:6px 0 8px}
+.hub-head{display:flex;align-items:center;gap:11px;margin-bottom:4px}
+.hub-avatar{
+  flex:0 0 38px;height:38px;border-radius:10px;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;
+}
+.hub-names{flex:1;min-width:0}
+.hub-title{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.35}
+.hub-sub{color:var(--faint);font-size:12.5px;line-height:1.4}
+.note-row{
+  padding:13px 14px;border-radius:10px;background:var(--surface);
+  color:var(--muted);font-size:12.5px;line-height:1.75;
+}
+
+/* ---- story view ---------------------------------------------------- */
+.story-switch{display:flex;gap:6px;margin:2px 2px 12px;flex-wrap:wrap}
+.story-chip{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--faint);letter-spacing:.02em}
+.story-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.episode-nav{display:flex;align-items:center;gap:8px;margin-bottom:20px}
 .nav-btn{
-  border:1px solid var(--line);background:var(--paper);width:42px;height:42px;
-  border-radius:12px;cursor:pointer;font-size:21px;color:var(--ink);
+  flex:0 0 auto;border:0;background:var(--surface);width:34px;height:34px;
+  border-radius:8px;cursor:pointer;font-size:17px;line-height:1;color:var(--muted);
 }
-.nav-btn:disabled{opacity:.28;cursor:default}
-.ep-center{text-align:center;min-width:0}
-.ep-count{font-size:11px;font-weight:900;letter-spacing:.08em;color:var(--muted)}
-.ep-title{font-size:15px;font-weight:850;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
+.nav-btn:hover:not(:disabled){background:var(--surface-hover)}
+.nav-btn:disabled{opacity:.32;cursor:default}
+.ep-center{flex:1;text-align:center;min-width:0}
+.ep-count{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep-title{font-size:13px;font-weight:700;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+h1{margin:0 0 8px;font-size:26px;line-height:1.32;letter-spacing:-.03em;font-weight:800}
 .guide{
-  margin:0 0 27px;color:var(--muted);font-size:13px;
-  padding-bottom:19px;border-bottom:1px solid var(--line);
+  margin:0 0 24px;color:var(--faint);font-size:12.5px;line-height:1.6;
+  padding-bottom:16px;border-bottom:1px solid var(--line);
 }
-.story p{margin:0 0 20px;font-size:17px;word-break:keep-all}
+/* The prose is the one place that stays generous — the density of the
+   reference belongs to the chrome, not to the reading itself. */
+.story p{margin:0 0 20px;font-size:17px;line-height:1.9;word-break:keep-all}
 .word{
-  display:inline;border:0;background:var(--word);color:var(--ink);
-  font-weight:900;font-size:1.18em;border-radius:5px;padding:1px 5px 2px;margin:0 1px;
-  line-height:1.45;cursor:pointer;transition:.14s ease;
+  display:inline;border:0;background:var(--word-bg);color:var(--word-ink);
+  font-weight:700;font-size:1.12em;border-radius:4px;padding:1px 5px 2px;margin:0 1px;
+  line-height:1.45;cursor:pointer;transition:background .13s ease;
 }
 .word:hover,.word:focus{background:var(--word-hover);outline:none}
 .footer-info{
-  margin-top:34px;padding-top:18px;border-top:1px solid var(--line);
-  display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;
+  margin-top:32px;padding-top:15px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;
+  color:var(--faint);font-size:11.5px;
 }
-.bottom-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.bottom-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .bottom-btn{
-  border:1px solid var(--line);background:var(--paper);border-radius:13px;
-  padding:12px 10px;font-weight:800;cursor:pointer;color:var(--ink);
+  border:0;background:var(--surface);border-radius:10px;
+  padding:13px 10px;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--muted);
 }
-.bottom-btn:disabled{opacity:.3}
+.bottom-btn:hover:not(:disabled){background:var(--surface-hover)}
+.bottom-btn:disabled{opacity:.32;cursor:default}
+
+/* ---- word bottom sheet --------------------------------------------- */
 .scrim{
-  position:fixed;inset:0;z-index:40;background:rgba(16,17,15,.3);
+  position:fixed;inset:0;z-index:40;background:var(--scrim);
   opacity:0;pointer-events:none;transition:.18s ease;
 }
 .scrim.open{opacity:1;pointer-events:auto}
 .sheet{
   position:fixed;left:50%;bottom:0;z-index:50;width:min(760px,100%);
   transform:translate(-50%,110%);transition:.23s cubic-bezier(.2,.8,.2,1);
-  background:var(--paper);border-radius:22px 22px 0 0;box-shadow:var(--shadow);
-  padding:10px 20px calc(22px + env(safe-area-inset-bottom));
+  background:var(--paper);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;box-shadow:var(--shadow);
+  max-height:88vh;overflow:auto;
+  padding:10px 18px calc(20px + env(safe-area-inset-bottom));
 }
 .sheet.open{transform:translate(-50%,0)}
-.handle{width:42px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 18px}
+.handle{width:36px;height:4px;border-radius:99px;background:var(--surface-strong);margin:0 auto 14px}
 .sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-.label{display:block;margin-bottom:5px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.08em}
-.kanji{font-size:40px;font-weight:900;letter-spacing:-.04em;line-height:1.15}
+.label{display:block;margin-bottom:4px;color:var(--faint);font-size:10.5px;font-weight:700;letter-spacing:.07em}
+.kanji{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
 .close{
-  width:36px;height:36px;border:0;border-radius:50%;background:var(--soft);
-  font-size:20px;cursor:pointer;
+  flex:0 0 auto;width:32px;height:32px;border:0;border-radius:8px;background:var(--surface);
+  color:var(--muted);font-size:18px;line-height:1;cursor:pointer;
 }
-.reading{margin-top:10px;color:var(--muted);font-size:15px}
-.meaning{margin-top:18px;padding:16px;border-radius:14px;background:var(--soft);font-size:17px;font-weight:850}
+.close:hover{background:var(--surface-hover)}
+.reading{margin-top:12px;color:var(--muted);font-size:14px}
+.meaning{margin-top:14px;padding:14px;border-radius:10px;background:var(--surface);font-size:16px;font-weight:700}
+.sheet-mnemonic{margin-top:8px;padding:14px;border-radius:10px;background:var(--surface);font-size:14px;line-height:1.7;color:var(--ink)}
 
-.toc-trigger{width:100%;margin-top:8px;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:9px 12px;color:var(--ink);font-size:13px;font-weight:850;cursor:pointer;text-align:left}
-.toc-panel{display:none;margin-top:9px;padding:8px;background:var(--soft);border:1px solid var(--line);border-radius:14px;max-height:46vh;overflow:auto}
-.toc-panel.open{display:block}
-.toc-item{width:100%;display:flex;align-items:center;gap:11px;border:0;background:transparent;padding:10px 9px;border-radius:10px;text-align:left;cursor:pointer;color:var(--ink)}
-.toc-item:hover{background:rgba(255,255,255,.68)}
-.toc-item.active{background:var(--paper);box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.toc-num{flex:0 0 42px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.05em}
-.toc-name{font-size:14px;font-weight:850}
+/* ---- mnemonic mode -------------------------------------------------- */
 .mnemonic-wrap{display:none}.mnemonic-wrap.active{display:block}.story.hidden{display:none}
-.mnemonic-note{margin:-8px 0 18px;padding:12px 14px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px;line-height:1.65}
-.mnemonic-grid{display:grid;grid-template-columns:1fr;gap:12px}
-.mnemonic-card{border:1px solid var(--line);border-radius:16px;padding:17px 17px 16px;background:var(--paper)}
+.mnemonic-note{margin:-6px 0 14px;padding:12px 14px;border-radius:10px;background:var(--surface);color:var(--faint);font-size:12px;line-height:1.7}
+.mnemonic-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.mnemonic-card{border:0;border-radius:12px;padding:16px;background:var(--surface)}
 .mnemonic-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.mnemonic-word{font-size:31px;font-weight:950;letter-spacing:-.04em;line-height:1.15}
-.mnemonic-reading{margin-top:5px;color:var(--muted);font-size:13px}.mnemonic-meaning{flex:0 0 auto;background:var(--soft);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:850;color:var(--ink);max-width:48%;text-align:right}
-.mnemonic-parts{margin-top:14px;font-size:13px;color:var(--muted)}.mnemonic-memory{margin-top:7px;font-size:15px;font-weight:800;line-height:1.7;color:var(--ink)}
-.sheet-mnemonic{margin-top:10px;padding:13px 14px;border-radius:14px;background:var(--soft);font-size:14px;line-height:1.65;color:var(--ink)}
-
-
-.word-badge{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:10px;font-weight:900;vertical-align:middle}
-.word-badge.today{background:var(--word);color:var(--ink)}
-.kanji-breakdown{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
-.kanji-breakdown-title{font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.07em;margin-bottom:8px}
-.kanji-row{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
+.mnemonic-word{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.25}
+.mnemonic-reading{margin-top:4px;color:var(--faint);font-size:12.5px}
+.mnemonic-meaning{flex:0 0 auto;background:var(--surface-strong);padding:5px 9px;border-radius:6px;font-size:12px;font-weight:700;color:var(--muted);max-width:48%;text-align:right}
+.mnemonic-parts{margin-top:14px;font-size:13px;color:var(--muted)}
+.mnemonic-memory{margin-top:7px;font-size:15px;font-weight:700;line-height:1.75;color:var(--ink)}
+.word-badge{
+  display:inline-flex;align-items:center;margin-left:7px;padding:2px 7px;border-radius:5px;
+  background:var(--surface-strong);color:var(--faint);font-size:10px;font-weight:700;vertical-align:3px;
+}
+.word-badge.today{background:var(--accent-soft);color:var(--accent)}
+.kanji-breakdown{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.kanji-breakdown-title{font-size:10.5px;font-weight:700;color:var(--faint);letter-spacing:.07em;margin-bottom:8px}
+.kanji-row{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
 .kanji-row:last-child{border-bottom:0}
-.kanji-char{font-size:28px;font-weight:950;line-height:1.1;text-align:center;background:var(--soft);border-radius:10px;padding:7px 0}
-.kanji-detail{font-size:13px;line-height:1.58;color:var(--muted)}
-.kanji-detail strong{color:var(--ink)}
-.word-mnemonic-title{margin-top:12px;font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.07em}
-.word-mnemonic-text{margin-top:5px;font-size:15px;font-weight:800;line-height:1.7;color:var(--ink)}
-.sheet .kanji-row{grid-template-columns:38px 1fr;padding:7px 0}
-.sheet .kanji-char{font-size:24px;padding:6px 0}
+.kanji-char{font-size:24px;font-weight:800;line-height:1.1;text-align:center;background:var(--surface-strong);border-radius:8px;padding:7px 0}
+.kanji-detail{font-size:13px;line-height:1.65;color:var(--muted)}
+.kanji-detail strong{color:var(--ink);font-weight:700}
+.word-mnemonic-title{margin-top:12px;font-size:10.5px;font-weight:700;color:var(--faint);letter-spacing:.07em}
+.word-mnemonic-text{margin-top:5px;font-size:15px;font-weight:700;line-height:1.75;color:var(--ink)}
+.sheet .kanji-row{grid-template-columns:36px 1fr;padding:7px 0}
+.sheet .kanji-char{font-size:21px;padding:6px 0;background:var(--surface-strong)}
 .sheet .kanji-detail{font-size:12.5px}
 
-.hub{padding:20px 4px 8px}
-.hub-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hub-title{font-size:24px;font-weight:800;margin:6px 0 4px;letter-spacing:-.03em}
-.hub-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
-.level-grid{display:grid;grid-template-columns:1fr;gap:12px}
-.level-card{
-  display:flex;align-items:center;justify-content:space-between;gap:14px;
-  border:1.5px solid var(--line);border-radius:18px;padding:18px 20px;
-  background:var(--paper);cursor:pointer;text-align:left;
-}
-.level-card:disabled{opacity:.5;cursor:default}
-.level-card .lvl{font-size:26px;font-weight:950;letter-spacing:-.03em}
-.level-card .desc{color:var(--muted);font-size:12.5px;margin-top:4px}
-.level-card .arrow{font-size:20px;color:var(--muted)}
-.badge-soon{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:10.5px;font-weight:900;vertical-align:middle}
-.back-row{margin-bottom:14px}
-.back-btn{border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:800;color:var(--muted);cursor:pointer}
-
 @media (max-width:430px){
-  main{padding-left:18px;padding-right:18px}
+  main{padding-left:14px;padding-right:14px}
   .story p{font-size:16.5px}
-  h1{font-size:27px}
+  h1{font-size:24px}
 }
 </style>
 </head>
@@ -218,22 +310,28 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
 <div class="app">
   <header class="topbar" id="topbar" style="display:none">
     <div class="topline">
+      <button class="icon-btn" id="backToHub" type="button" aria-label="급수 선택으로">‹</button>
       <div class="brand" id="brandLabel"></div>
-      <div class="topline-end">
-        <div class="total" id="totalLabel"></div>
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="테마 전환">🌙</button>
-      </div>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="테마 전환">🌙</button>
     </div>
-    <button class="settings-trigger" id="settingsTrigger" type="button">
-      <span>보기 설정 · 목차</span><span class="chev" id="settingsChev">›</span>
+    <button class="row row-flat" id="settingsTrigger" type="button" aria-expanded="false" aria-controls="settingsPanel">
+      <span class="row-icon">⚙</span>
+      <span class="row-main"><span class="row-title">보기 설정 · 목차</span></span>
+      <span class="row-chev">›</span>
     </button>
     <div class="settings-panel" id="settingsPanel">
+      <div class="section-label">표기 방식</div>
       <div class="tabs" role="tablist" aria-label="표기 방식">
         <button class="tab active" id="kanjiTab" type="button">한자로 보기</button>
         <button class="tab" id="hangulTab" type="button">한글발음</button>
         <button class="tab" id="mnemonicTab" type="button">연상법</button>
       </div>
-      <button class="toc-trigger" id="tocTrigger" type="button">스토리 목차 ▾</button>
+      <div class="section-label">스토리 목차</div>
+      <button class="row row-flat" id="tocTrigger" type="button" aria-expanded="false" aria-controls="tocPanel">
+        <span class="row-icon">☰</span>
+        <span class="row-main"><span class="row-title">에피소드 목록</span></span>
+        <span class="row-chev">›</span>
+      </button>
       <div class="toc-panel" id="tocPanel"></div>
     </div>
   </header>
@@ -241,17 +339,20 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
   <main>
     <section id="hubView" class="hub">
       <div class="hub-head">
-        <div class="hub-title">단어 스릴러</div>
-        <button class="theme-toggle" id="themeToggleHub" type="button" aria-label="테마 전환">🌙</button>
+        <div class="hub-avatar">단</div>
+        <div class="hub-names">
+          <div class="hub-title">단어 스릴러</div>
+          <div class="hub-sub">이야기로 외우는 일본어 단어</div>
+        </div>
+        <button class="icon-btn" id="themeToggleHub" type="button" aria-label="테마 전환">🌙</button>
       </div>
-      <div class="hub-sub">급수를 고르면 그 급수 이야기로 들어가요.</div>
-      <div class="level-grid" id="levelGrid"></div>
+      <div class="section-label">급수</div>
+      <div class="row-list" id="levelGrid"></div>
+      <div class="section-label">읽는 법</div>
+      <div class="note-row">단어를 누르면 읽는 법 · 뜻 · 한자별 연상법이 아래에서 열려요. N5는 요일마다 이야기가 바뀌고, 오늘 요일의 이야기만 열립니다.</div>
     </section>
 
     <div id="storyView" style="display:none">
-      <div class="back-row">
-        <button class="back-btn" id="backToHub" type="button">← 급수 선택으로</button>
-      </div>
       <div class="story-switch" id="storySwitch"></div>
       <div class="episode-nav">
         <button class="nav-btn" id="prevTop" aria-label="이전화">‹</button>
@@ -272,7 +373,7 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
 
       <div class="footer-info">
         <span id="episodeWordCount"></span>
-        <span id="coverage"></span>
+        <span id="totalLabel"></span>
       </div>
       <div class="bottom-nav">
         <button class="bottom-btn" id="prevBottom">← 이전 화</button>
@@ -335,16 +436,21 @@ function todaysStoryIndex(level) {
   return idx >= 0 ? idx : 0;
 }
 
+// Level picker as a page list, not a card grid: icon tile + title +
+// one-line subtitle + chevron, same primitive the TOC and the settings
+// disclosure use.
 function renderLevelGrid() {
   levelGrid.innerHTML = LEVEL_ORDER.map(key => {
     const l = LEVELS[key];
     const wordCount = Object.keys(l.lexicon).length;
-    return `<button class="level-card" type="button" data-level="${key}" ${l.ready ? "" : "disabled"}>
-      <div>
-        <div class="lvl">${l.label}${l.ready ? "" : '<span class="badge-soon">준비중</span>'}</div>
-        <div class="desc">${l.ready ? `${l.subtitle} · 단어 ${wordCount}개` : l.subtitle}</div>
-      </div>
-      <div class="arrow">${l.ready ? "›" : ""}</div>
+    const sub = l.ready ? `${l.subtitle} · 단어 ${wordCount}개` : l.subtitle;
+    return `<button class="row" type="button" data-level="${key}" ${l.ready ? "" : "disabled"}>
+      <span class="row-icon">${l.label}</span>
+      <span class="row-main">
+        <span class="row-title">${escapeHtml(l.full)}${l.ready ? "" : '<span class="row-tag">준비중</span>'}</span>
+        <span class="row-sub">${escapeHtml(sub)}</span>
+      </span>
+      <span class="row-chev">${l.ready ? "›" : ""}</span>
     </button>`;
   }).join("");
 }
@@ -360,7 +466,12 @@ function openLevel(key) {
   hubView.style.display = "none";
   topbar.style.display = "";
   storyView.style.display = "";
-  $("brandLabel").textContent = "단어 스릴러 · " + l.full;
+  // Chrome always starts collapsed, so a level opens onto the story.
+  $("settingsPanel").classList.remove("open");
+  $("settingsTrigger").classList.remove("open");
+  $("settingsTrigger").setAttribute("aria-expanded", "false");
+  setToc(false);
+  $("brandLabel").textContent = l.full;
   $("guideText").textContent = "단어를 누르면 읽는 법·뜻·한자별 연상법을 볼 수 있어요.";
   render();
 }
@@ -384,7 +495,7 @@ function renderStorySwitch() {
   const l = lv();
   if (l.stories.length <= 1) { storySwitchEl.innerHTML = ""; return; }
   const story = activeStory();
-  storySwitchEl.innerHTML = `<span class="story-chip active"><span class="dot"></span>${story.label} · 오늘의 이야기</span>`;
+  storySwitchEl.innerHTML = `<span class="story-chip"><span class="dot"></span>${escapeHtml(story.label)} · 오늘의 이야기</span>`;
 }
 
 function renderParagraph(text) {
@@ -474,9 +585,11 @@ function render() {
   const todaySet = new Set(todayWords);
   const todayCount = epWords.filter(w => todaySet.has(w)).length;
   const reviewCount = epWords.length - todayCount;
-  $("episodeWordCount").textContent = `이번 화 ${epWords.length}개 · 오늘 ${todayCount} · 복습 ${reviewCount}`;
-  $("totalLabel").textContent = `보유 ${Object.keys(lexicon).length}단어`;
-  $("coverage").textContent = `이번 화 사용 ${epWords.length}개`;
+  // Footer carries two non-overlapping numbers: this episode's word load,
+  // and the level's total vocabulary. The old third line repeated the
+  // episode count verbatim, so it's gone.
+  $("episodeWordCount").textContent = `이번 화 단어 ${epWords.length}개 · 오늘 ${todayCount} · 복습 ${reviewCount}`;
+  $("totalLabel").textContent = `${lv().label} 보유 ${Object.keys(lexicon).length}단어`;
   const first = currentEpisode === 0, last = currentEpisode === story.episodes.length - 1;
   $("prevTop").disabled = first; $("prevBottom").disabled = first; $("nextTop").disabled = last; $("nextBottom").disabled = last;
   kanjiTab.classList.toggle("active", mode === "kanji");
@@ -528,7 +641,7 @@ function closeWord() {
 }
 
 levelGrid.addEventListener("click", e => {
-  const btn = e.target.closest(".level-card");
+  const btn = e.target.closest(".row");
   if (btn && !btn.disabled) openLevel(btn.dataset.level);
 });
 $("backToHub").addEventListener("click", backToHub);
@@ -539,14 +652,20 @@ storyEl.addEventListener("click", e => {
 kanjiTab.addEventListener("click", () => setMode("kanji"));
 hangulTab.addEventListener("click", () => setMode("hangul"));
 mnemonicTab.addEventListener("click", () => setMode("mnemonic"));
-$("tocTrigger").addEventListener("click", () => {
-  tocPanel.classList.toggle("open");
-  $("tocTrigger").textContent = tocPanel.classList.contains("open") ? "스토리 목차 ▴" : "스토리 목차 ▾";
-});
+// The TOC is a nested disclosure inside the settings row — same
+// expand-chevron affordance one level down, like a Notion page with
+// children. State lives on the row's class so the chevron rotation and
+// aria-expanded never drift apart.
+function setToc(open) {
+  tocPanel.classList.toggle("open", open);
+  $("tocTrigger").classList.toggle("open", open);
+  $("tocTrigger").setAttribute("aria-expanded", String(open));
+}
+$("tocTrigger").addEventListener("click", () => setToc(!tocPanel.classList.contains("open")));
 tocPanel.addEventListener("click", e => {
   const item = e.target.closest(".toc-item"); if (!item) return;
   currentEpisode = Number(item.dataset.ep);
-  tocPanel.classList.remove("open"); $("tocTrigger").textContent = "스토리 목차 ▾";
+  setToc(false);
   closeWord(); render();
 });
 $("prevTop").addEventListener("click", () => go(-1));
@@ -590,6 +709,8 @@ $("themeToggleHub").addEventListener("click", toggleTheme);
 $("settingsTrigger").addEventListener("click", () => {
   const open = $("settingsPanel").classList.toggle("open");
   $("settingsTrigger").classList.toggle("open", open);
+  $("settingsTrigger").setAttribute("aria-expanded", String(open));
+  if (!open) setToc(false);
 });
 
 renderLevelGrid();
