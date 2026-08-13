@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6f4ee">
+<meta name="theme-color" content="#f6f4ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17171a" media="(prefers-color-scheme: dark)">
 <title>단어 스릴러 · 급수 선택</title>
 <style>
 :root {
+  color-scheme: light dark;
   --bg:#f3f1ea;
   --paper:#fffdf8;
   --ink:#1d1f1b;
@@ -16,6 +18,36 @@
   --word:#e7ecdf;
   --word-hover:#dce5d1;
   --shadow:0 18px 48px rgba(32,31,27,.12);
+  --header-bg:rgba(255,253,248,.94);
+  --app-shadow:0 0 50px rgba(0,0,0,.035);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#17171a;
+    --paper:#1e1e21;
+    --ink:#eae7e0;
+    --muted:#8f8c84;
+    --line:#333237;
+    --soft:#26262a;
+    --word:#3a4136;
+    --word-hover:#47503f;
+    --shadow:0 18px 48px rgba(0,0,0,.55);
+    --header-bg:rgba(23,23,26,.88);
+    --app-shadow:0 0 50px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#17171a;
+  --paper:#1e1e21;
+  --ink:#eae7e0;
+  --muted:#8f8c84;
+  --line:#333237;
+  --soft:#26262a;
+  --word:#3a4136;
+  --word-hover:#47503f;
+  --shadow:0 18px 48px rgba(0,0,0,.55);
+  --header-bg:rgba(23,23,26,.88);
+  --app-shadow:0 0 50px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -27,28 +59,46 @@ body{
 button{font:inherit}
 .app{
   width:min(760px,100%);min-height:100vh;margin:0 auto;background:var(--paper);
-  box-shadow:0 0 50px rgba(0,0,0,.035);
+  box-shadow:var(--app-shadow);
 }
 .topbar{
   position:sticky;top:0;z-index:20;padding:13px 18px 12px;
-  background:rgba(255,253,248,.94);backdrop-filter:blur(12px);
+  background:var(--header-bg);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);
 }
+.theme-toggle{
+  border:1.5px solid var(--line);background:var(--paper);color:var(--ink);
+  width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
 .topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topline-end{display:flex;align-items:center;gap:9px}
 .brand{font-size:13px;color:var(--muted);font-weight:700}
 .total{font-size:12px;color:var(--muted)}
+/* Notion-style collapsed-by-default row: everything except the story itself
+   (display mode, TOC) tucks under this until tapped open, so the reading
+   pane is what actually greets you. */
+.settings-trigger{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  border:0;background:transparent;padding:6px 2px;color:var(--muted);
+  font-size:12.5px;font-weight:800;cursor:pointer;
+}
+.settings-trigger .chev{transition:transform .15s ease;font-size:14px}
+.settings-trigger.open .chev{transform:rotate(90deg)}
+.settings-panel{display:none;margin-top:6px}
+.settings-panel.open{display:block}
 .tabs{
   display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;padding:4px;
   background:var(--soft);border:1px solid var(--line);border-radius:14px;
 }
 .tab{
   border:0;background:transparent;border-radius:10px;padding:10px 8px;
-  color:#77736b;font-size:14px;font-weight:800;cursor:pointer;
+  color:var(--muted);font-size:14px;font-weight:800;cursor:pointer;
 }
 .tab.active{background:var(--paper);color:var(--ink);box-shadow:0 2px 9px rgba(0,0,0,.07)}
 main{padding:26px 22px 90px}
 .story-switch{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.story-chip{display:inline-block;border:1.5px solid var(--line);background:var(--paper);border-radius:100px;padding:7px 12px;font-size:12px;font-weight:800;color:#77736b}
+.story-chip{display:inline-block;border:1.5px solid var(--line);background:var(--paper);border-radius:100px;padding:7px 12px;font-size:12px;font-weight:800;color:var(--muted)}
 .story-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .story-chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#e6a23c;margin-right:5px;vertical-align:middle}
 .episode-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:23px}
@@ -58,16 +108,16 @@ main{padding:26px 22px 90px}
 }
 .nav-btn:disabled{opacity:.28;cursor:default}
 .ep-center{text-align:center;min-width:0}
-.ep-count{font-size:11px;font-weight:900;letter-spacing:.08em;color:#929087}
+.ep-count{font-size:11px;font-weight:900;letter-spacing:.08em;color:var(--muted)}
 .ep-title{font-size:15px;font-weight:850;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
 .guide{
-  margin:0 0 27px;color:#737068;font-size:13px;
+  margin:0 0 27px;color:var(--muted);font-size:13px;
   padding-bottom:19px;border-bottom:1px solid var(--line);
 }
 .story p{margin:0 0 20px;font-size:17px;word-break:keep-all}
 .word{
-  display:inline;border:0;background:var(--word);color:#20271e;
+  display:inline;border:0;background:var(--word);color:var(--ink);
   font-weight:900;font-size:1.18em;border-radius:5px;padding:1px 5px 2px;margin:0 1px;
   line-height:1.45;cursor:pointer;transition:.14s ease;
 }
@@ -94,15 +144,15 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
   padding:10px 20px calc(22px + env(safe-area-inset-bottom));
 }
 .sheet.open{transform:translate(-50%,0)}
-.handle{width:42px;height:4px;border-radius:99px;background:#d8d3c9;margin:0 auto 18px}
+.handle{width:42px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 18px}
 .sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-.label{display:block;margin-bottom:5px;color:#99958b;font-size:11px;font-weight:900;letter-spacing:.08em}
+.label{display:block;margin-bottom:5px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.08em}
 .kanji{font-size:40px;font-weight:900;letter-spacing:-.04em;line-height:1.15}
 .close{
   width:36px;height:36px;border:0;border-radius:50%;background:var(--soft);
   font-size:20px;cursor:pointer;
 }
-.reading{margin-top:10px;color:#66645d;font-size:15px}
+.reading{margin-top:10px;color:var(--muted);font-size:15px}
 .meaning{margin-top:18px;padding:16px;border-radius:14px;background:var(--soft);font-size:17px;font-weight:850}
 
 .toc-trigger{width:100%;margin-top:8px;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:9px 12px;color:var(--ink);font-size:13px;font-weight:850;cursor:pointer;text-align:left}
@@ -111,35 +161,36 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
 .toc-item{width:100%;display:flex;align-items:center;gap:11px;border:0;background:transparent;padding:10px 9px;border-radius:10px;text-align:left;cursor:pointer;color:var(--ink)}
 .toc-item:hover{background:rgba(255,255,255,.68)}
 .toc-item.active{background:var(--paper);box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.toc-num{flex:0 0 42px;color:#99958b;font-size:11px;font-weight:900;letter-spacing:.05em}
+.toc-num{flex:0 0 42px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.05em}
 .toc-name{font-size:14px;font-weight:850}
 .mnemonic-wrap{display:none}.mnemonic-wrap.active{display:block}.story.hidden{display:none}
-.mnemonic-note{margin:-8px 0 18px;padding:12px 14px;border-radius:12px;background:var(--soft);color:#706d65;font-size:12px;line-height:1.65}
+.mnemonic-note{margin:-8px 0 18px;padding:12px 14px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px;line-height:1.65}
 .mnemonic-grid{display:grid;grid-template-columns:1fr;gap:12px}
-.mnemonic-card{border:1px solid var(--line);border-radius:16px;padding:17px 17px 16px;background:#fffefb}
+.mnemonic-card{border:1px solid var(--line);border-radius:16px;padding:17px 17px 16px;background:var(--paper)}
 .mnemonic-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .mnemonic-word{font-size:31px;font-weight:950;letter-spacing:-.04em;line-height:1.15}
-.mnemonic-reading{margin-top:5px;color:#77736b;font-size:13px}.mnemonic-meaning{flex:0 0 auto;background:var(--soft);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:850;color:#59574f;max-width:48%;text-align:right}
-.mnemonic-parts{margin-top:14px;font-size:13px;color:#6f6c64}.mnemonic-memory{margin-top:7px;font-size:15px;font-weight:800;line-height:1.7;color:#292b26}
-.sheet-mnemonic{margin-top:10px;padding:13px 14px;border-radius:14px;background:#f7f3e8;font-size:14px;line-height:1.65;color:#45463f}
+.mnemonic-reading{margin-top:5px;color:var(--muted);font-size:13px}.mnemonic-meaning{flex:0 0 auto;background:var(--soft);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:850;color:var(--ink);max-width:48%;text-align:right}
+.mnemonic-parts{margin-top:14px;font-size:13px;color:var(--muted)}.mnemonic-memory{margin-top:7px;font-size:15px;font-weight:800;line-height:1.7;color:var(--ink)}
+.sheet-mnemonic{margin-top:10px;padding:13px 14px;border-radius:14px;background:var(--soft);font-size:14px;line-height:1.65;color:var(--ink)}
 
 
-.word-badge{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border-radius:999px;background:var(--soft);color:#6c6961;font-size:10px;font-weight:900;vertical-align:middle}
-.word-badge.today{background:var(--word);color:#3e4938}
+.word-badge{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:10px;font-weight:900;vertical-align:middle}
+.word-badge.today{background:var(--word);color:var(--ink)}
 .kanji-breakdown{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
-.kanji-breakdown-title{font-size:11px;font-weight:900;color:#99958b;letter-spacing:.07em;margin-bottom:8px}
-.kanji-row{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid #eeeae1}
+.kanji-breakdown-title{font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.07em;margin-bottom:8px}
+.kanji-row{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
 .kanji-row:last-child{border-bottom:0}
 .kanji-char{font-size:28px;font-weight:950;line-height:1.1;text-align:center;background:var(--soft);border-radius:10px;padding:7px 0}
-.kanji-detail{font-size:13px;line-height:1.58;color:#5f5c55}
-.kanji-detail strong{color:#2c2e29}
-.word-mnemonic-title{margin-top:12px;font-size:11px;font-weight:900;color:#99958b;letter-spacing:.07em}
-.word-mnemonic-text{margin-top:5px;font-size:15px;font-weight:800;line-height:1.7;color:#292b26}
+.kanji-detail{font-size:13px;line-height:1.58;color:var(--muted)}
+.kanji-detail strong{color:var(--ink)}
+.word-mnemonic-title{margin-top:12px;font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.07em}
+.word-mnemonic-text{margin-top:5px;font-size:15px;font-weight:800;line-height:1.7;color:var(--ink)}
 .sheet .kanji-row{grid-template-columns:38px 1fr;padding:7px 0}
 .sheet .kanji-char{font-size:24px;padding:6px 0}
 .sheet .kanji-detail{font-size:12.5px}
 
 .hub{padding:20px 4px 8px}
+.hub-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hub-title{font-size:24px;font-weight:800;margin:6px 0 4px;letter-spacing:-.03em}
 .hub-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
 .level-grid{display:grid;grid-template-columns:1fr;gap:12px}
@@ -151,10 +202,10 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
 .level-card:disabled{opacity:.5;cursor:default}
 .level-card .lvl{font-size:26px;font-weight:950;letter-spacing:-.03em}
 .level-card .desc{color:var(--muted);font-size:12.5px;margin-top:4px}
-.level-card .arrow{font-size:20px;color:#99958b}
-.badge-soon{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--soft);color:#8a8579;font-size:10.5px;font-weight:900;vertical-align:middle}
+.level-card .arrow{font-size:20px;color:var(--muted)}
+.badge-soon{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:10.5px;font-weight:900;vertical-align:middle}
 .back-row{margin-bottom:14px}
-.back-btn{border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:800;color:#5f5c55;cursor:pointer}
+.back-btn{border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:8px 13px;font-size:12.5px;font-weight:800;color:var(--muted);cursor:pointer}
 
 @media (max-width:430px){
   main{padding-left:18px;padding-right:18px}
@@ -168,20 +219,31 @@ h1{margin:0 0 9px;font-size:29px;line-height:1.3;letter-spacing:-.04em}
   <header class="topbar" id="topbar" style="display:none">
     <div class="topline">
       <div class="brand" id="brandLabel"></div>
-      <div class="total" id="totalLabel"></div>
+      <div class="topline-end">
+        <div class="total" id="totalLabel"></div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="테마 전환">🌙</button>
+      </div>
     </div>
-    <div class="tabs" role="tablist" aria-label="표기 방식">
-      <button class="tab active" id="kanjiTab" type="button">한자로 보기</button>
-      <button class="tab" id="hangulTab" type="button">한글발음</button>
-      <button class="tab" id="mnemonicTab" type="button">연상법</button>
+    <button class="settings-trigger" id="settingsTrigger" type="button">
+      <span>보기 설정 · 목차</span><span class="chev" id="settingsChev">›</span>
+    </button>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="tabs" role="tablist" aria-label="표기 방식">
+        <button class="tab active" id="kanjiTab" type="button">한자로 보기</button>
+        <button class="tab" id="hangulTab" type="button">한글발음</button>
+        <button class="tab" id="mnemonicTab" type="button">연상법</button>
+      </div>
+      <button class="toc-trigger" id="tocTrigger" type="button">스토리 목차 ▾</button>
+      <div class="toc-panel" id="tocPanel"></div>
     </div>
-    <button class="toc-trigger" id="tocTrigger" type="button">스토리 목차 ▾</button>
-    <div class="toc-panel" id="tocPanel"></div>
   </header>
 
   <main>
     <section id="hubView" class="hub">
-      <div class="hub-title">단어 스릴러</div>
+      <div class="hub-head">
+        <div class="hub-title">단어 스릴러</div>
+        <button class="theme-toggle" id="themeToggleHub" type="button" aria-label="테마 전환">🌙</button>
+      </div>
       <div class="hub-sub">급수를 고르면 그 급수 이야기로 들어가요.</div>
       <div class="level-grid" id="levelGrid"></div>
     </section>
@@ -498,6 +560,36 @@ document.addEventListener("keydown", e => {
   if (!currentLevelKey) return;
   if (e.key === "ArrowLeft") go(-1);
   if (e.key === "ArrowRight") go(1);
+});
+
+// ---- theme (dark/light), manual override on top of prefers-color-scheme ----
+// Stored value wins in both directions once set; before that, the CSS's own
+// @media query decides, so a first-time visitor gets the right theme with
+// no flash-of-wrong-theme and no JS needed at all.
+const THEME_KEY = "wordThrillerTheme";
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t);
+  else document.documentElement.removeAttribute("data-theme");
+  const icon = t === "dark" ? "☀️" : t === "light" ? "🌙" : "🌓";
+  const btn1 = $("themeToggle"), btn2 = $("themeToggleHub");
+  if (btn1) btn1.textContent = icon;
+  if (btn2) btn2.textContent = icon;
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme")
+    || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const next = current === "dark" ? "light" : "dark";
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+}
+applyTheme(localStorage.getItem(THEME_KEY));
+$("themeToggle").addEventListener("click", toggleTheme);
+$("themeToggleHub").addEventListener("click", toggleTheme);
+
+// ---- collapsed-by-default settings row (display mode + TOC) ----
+$("settingsTrigger").addEventListener("click", () => {
+  const open = $("settingsPanel").classList.toggle("open");
+  $("settingsTrigger").classList.toggle("open", open);
 });
 
 renderLevelGrid();
