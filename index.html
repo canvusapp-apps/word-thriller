@@ -205,7 +205,13 @@ main{padding:18px 16px 88px}
 .story-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 12px;flex-wrap:wrap}
 .story-chip{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--faint);letter-spacing:.02em}
 .story-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.difficulty-toggle{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;background:var(--surface);border-radius:9px}
+/* margin-left:auto keeps this pinned to the row's right edge whether or
+   not a day-chip sibling exists — without it, N3 (which has no chip, since
+   it has only one always-on story) loses the sibling that space-between
+   needs to push against, so the SAME toggle silently lands at the opposite
+   end of the row from where it sits on N5. That inconsistency is the
+   "layout differs" bug, not a real design difference. */
+.difficulty-toggle{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;background:var(--surface);border-radius:9px;margin-left:auto}
 .diff-tab{border:0;background:transparent;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer}
 .diff-tab.active{background:var(--seg-active);color:var(--ink);box-shadow:var(--seg-shadow)}
 .episode-nav{display:flex;align-items:center;gap:8px;margin-bottom:20px}
